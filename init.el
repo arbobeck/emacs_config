@@ -194,6 +194,7 @@
        ;;literate
        (default +bindings +smartparens))
 
+;; vue syntax highlighting
 (package-initialize)
 (add-hook 'mmm-mode-hook
           (lambda ()

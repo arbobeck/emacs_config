@@ -41,6 +41,9 @@
 ;;
 (setq vterm-shell "/usr/bin/zsh")
 
+;; remove menu on splash screen
+(remove-hook '+doom-dashboard-functions #'doom-dashboard-widget-shortmenu)
+
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.

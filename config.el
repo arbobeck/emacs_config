@@ -38,7 +38,7 @@
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")
 
-;;
+;; set vterm to zsh
 (setq vterm-shell "/usr/bin/zsh")
 
 ;; remove menu on splash screen

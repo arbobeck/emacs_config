@@ -84,24 +84,6 @@
 (map! :leader
       :desc "Treemacs" "o e" #'treemacs)
 
-(after! projectile
-  (setq projectile-switch-project-action
-        (lambda ()
-          (let ((project-root (projectile-project-root)))
-            ;; switch to workspace
-            (+workspace-switch project-root t)
-            ;; open Treemacs for project
-            (when (fboundp 'treemacs)
-              (treemacs-add-project-to-workspace project-root))
-            ;; fallback: open project root in Dired
-            (dired project-root)))))
-
-(after! projectile
-  ;; Ensure Git repos are recognized
-  (add-to-list 'projectile-project-root-files-bottom-up ".git"))
-
-;;; treemacs + all-the-icons setup
-
 ;; Load all-the-icons and install fonts if needed
 (use-package! all-the-icons
   :config
@@ -119,4 +101,35 @@
 
 (setq treemacs-follow-mode t)
 (setq treemacs-is-never-other-window t)
+(setq doom-font (font-spec :family "0xProto Nerd Font" :size 14))
 
+(after! projectile
+  (setq projectile-switch-project-action
+        (lambda ()
+          (let ((project-root (projectile-project-root)))
+            ;; only switch if the workspace system is ready
+            (when (fboundp '+workspace-switch)
+              (+workspace-switch project-root t))
+            ;; add project to Treemacs
+            (when (fboundp 'treemacs)
+              (treemacs-add-project-to-workspace project-root))
+            ;; fallback: open project root in Dired
+            (dired project-root)))))
+
+;;; EMMS YouTube + MPV + Resume Setup
+
+;;; EMMS YouTube + MPV Setup
+(use-package! emms
+  :defer t
+  :config
+  ;; Enable the core EMMS modules you need
+  (require 'emms-setup)
+  (require 'emms-player-mpv)
+  
+  ;; Setup MPV as player
+  (setq emms-player-list '(emms-player-mpv))
+  (setq emms-player-mpv-parameters '("--no-video" "--no-terminal" "--quiet"))
+  
+  ;; Basic EMMS setup
+  (emms-all)
+  (emms-default-players))

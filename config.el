@@ -80,3 +80,43 @@
 (set-frame-parameter (selected-frame) 'alpha '(90 . 90)) (add-to-list 'default-frame-alist '(alpha . (90 . 90)))
 
 (setq vterm-module-cmake-args '("-DUSE_SYSTEM_LIBVTERM=ON"))
+
+(map! :leader
+      :desc "Treemacs" "o e" #'treemacs)
+
+(after! projectile
+  (setq projectile-switch-project-action
+        (lambda ()
+          (let ((project-root (projectile-project-root)))
+            ;; switch to workspace
+            (+workspace-switch project-root t)
+            ;; open Treemacs for project
+            (when (fboundp 'treemacs)
+              (treemacs-add-project-to-workspace project-root))
+            ;; fallback: open project root in Dired
+            (dired project-root)))))
+
+(after! projectile
+  ;; Ensure Git repos are recognized
+  (add-to-list 'projectile-project-root-files-bottom-up ".git"))
+
+;;; treemacs + all-the-icons setup
+
+;; Load all-the-icons and install fonts if needed
+(use-package! all-the-icons
+  :config
+  ;; install fonts if not already installed
+  (unless (member "all-the-icons" (font-family-list))
+    (all-the-icons-install-fonts t)))
+
+;; Enable treemacs with icons
+(use-package! treemacs
+  :after all-the-icons
+  :config
+  (require 'treemacs-all-the-icons)
+  ;; enable all-the-icons theme
+  (treemacs-load-theme "all-the-icons"))
+
+(setq treemacs-follow-mode t)
+(setq treemacs-is-never-other-window t)
+

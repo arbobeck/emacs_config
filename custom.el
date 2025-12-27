@@ -5,7 +5,8 @@
  ;; If there is more than one, they won't work right.
  '(cua-mode t nil (cua-base))
  '(magit-todos-insert-after '(bottom) nil nil "Changed by setter of obsolete option `magit-todos-insert-at'")
- '(package-selected-packages '(chatgpt-shell vue-mode))
+ '(package-selected-packages
+   '(all-the-icons-nerd-fonts treemacs-all-the-icons @ all-the-icons chatgpt-shell vue-mode))
  '(tool-bar-mode nil nil (tool-bar)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

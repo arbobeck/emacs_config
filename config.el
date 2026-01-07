@@ -116,8 +116,6 @@
             ;; fallback: open project root in Dired
             (dired project-root)))))
 
-;;; EMMS YouTube + MPV + Resume Setup
-
 ;;; EMMS YouTube + MPV Setup
 (use-package! emms
   :defer t

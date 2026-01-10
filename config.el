@@ -131,3 +131,9 @@
   ;; Basic EMMS setup
   (emms-all)
   (emms-default-players))
+
+;; Allow ctrl-shift-v to paste in vterm
+
+(after! vterm
+  (map! :map vterm-mode-map
+        "C-S-v" #'vterm-yank))

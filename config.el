@@ -96,8 +96,9 @@
   ;; enable all-the-icons theme
   (treemacs-load-theme "all-the-icons"))
 
-(setq treemacs-follow-mode t)
-(setq treemacs-is-never-other-window t)
+(after! treemacs
+  (treemacs-follow-mode t)
+  (treemacs-project-follow-mode t))
 
 (after! ligature
 	(global-ligature-mode +1))

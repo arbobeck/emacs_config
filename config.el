@@ -25,6 +25,8 @@
 ;; refresh your font settings. If Emacs still can't find your font, it likely
 ;; wasn't installed correctly. Font issues are rarely Doom issues!
 
+(setq vterm-module-cmake-args "")
+
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
@@ -37,9 +39,6 @@
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")
-
-;; set vterm to zsh
-(setq vterm-shell "/usr/bin/zsh")
 
 ;; remove menu on splash screen
 (remove-hook '+doom-dashboard-functions #'doom-dashboard-widget-shortmenu)
@@ -78,8 +77,6 @@
 ;; they are implemented.
 
 (set-frame-parameter (selected-frame) 'alpha '(90 . 90)) (add-to-list 'default-frame-alist '(alpha . (90 . 90)))
-
-(setq vterm-module-cmake-args '("-DUSE_SYSTEM_LIBVTERM=ON"))
 
 (map! :leader
       :desc "Treemacs" "o e" #'treemacs)

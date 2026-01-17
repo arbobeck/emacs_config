@@ -98,6 +98,10 @@
 
 (setq treemacs-follow-mode t)
 (setq treemacs-is-never-other-window t)
+
+(after! ligature
+	(global-ligature-mode +1))
+
 (setq doom-font (font-spec :family "0xProto Nerd Font" :size 14))
 
 (after! projectile

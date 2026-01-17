@@ -134,3 +134,17 @@
 (after! vterm
   (map! :map vterm-mode-map
         "C-S-v" #'vterm-yank))
+
+  ;; Red DOOM logo
+(custom-set-faces!
+  '(doom-dashboard-banner
+     :foreground "red"
+     :weight bold))
+
+;; Red footer text + icon
+(custom-set-faces!
+  '(doom-dashboard-loaded
+     :foreground "red"
+     :weight bold
+     :height 1.1))
+    

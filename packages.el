@@ -53,3 +53,5 @@
 ;; packages.el
 (package! all-the-icons)
 (package! treemacs-all-the-icons)
+(package! elpher)
+(package! ellama)

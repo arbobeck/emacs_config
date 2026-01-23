@@ -139,8 +139,7 @@
 (after! vterm
   (map! :map vterm-mode-map
         "C-S-v" #'vterm-yank))
-
-  ;; Red DOOM logo
+;; Red DOOM logo
 (custom-set-faces!
   '(doom-dashboard-banner
      :foreground "red"
@@ -152,4 +151,89 @@
      :foreground "red"
      :weight bold
      :height 1.1))
-    
+
+;; display time in the mode line
+(setq display-time-24hr-format 1)
+(setq display-time-day-and-date 1)
+(display-time-mode 1)
+
+(use-package ellama
+  :ensure t
+  :init
+  (setq ellama-chat-model "qwen2.5-coder:7b"
+        ellama-host "127.0.0.1:11434"
+        ellama-memory-file (expand-file-name "~/llm/memory.org")
+        ellama-sessions-directory (expand-file-name "~/llm/sessions/")))
+
+(global-set-key (kbd "C-c c") 'ellama-chat)
+
+(defun my/inject-memory (orig-fun &rest args)
+  "Inject memory into all ellama prompts."
+  (let* ((memory (with-temp-buffer
+                   (insert-file-contents ellama-memory-file)
+                   (buffer-string)))
+         (original-prompt (car args))
+         (new-prompt (format "[Context: %s]\n\n%s" memory original-prompt)))
+    (apply orig-fun (cons new-prompt (cdr args)))))
+
+(advice-add 'ellama-chat :around #'my/inject-memory)
+
+;; Now you only need one keybinding
+(map! :leader
+      :prefix "n"
+      :desc "Chat" "c" #'ellama-chat)
+
+;; Links.Org
+(setq my/links-file (expand-file-name "~/links.org"))
+
+(defun my/open-link ()
+  "Open link at point with appropriate app (elpher/emms)."
+  (interactive)
+  (let ((link (org-element-property :raw-link (org-element-context))))
+    (cond
+     ((string-prefix-p "gemini://" link)
+      (elpher-go link))
+     ((string-match-p "youtube.com\\|youtu.be" link)
+      (emms-play-url link))
+     (t (browse-url link)))))
+
+(defun my/add-link ()
+  "Add link to links.org under current heading."
+  (interactive)
+  (let ((url (read-string "URL: "))
+        (title (read-string "Title: "))
+        (category (completing-read "Category: " '("Gemini" "YouTube"))))
+    (find-file my/links-file)
+    (goto-char (point-min))
+    (re-search-forward (concat "^\\* " category))
+    (org-end-of-subtree)
+    (insert (format "** [[%s][%s]]\n" url title))
+    (save-buffer)))
+
+(defun my/browse-links ()
+  "Open links.org and jump to link selection."
+  (interactive)
+  (find-file my/links-file)
+  (counsel-org-goto)) ; or consult-org-heading if you use consult
+
+(map! :leader
+      :prefix "n"
+      :desc "Browse links" "l" #'my/browse-links
+      :desc "Add link" "L" #'my/add-link)
+
+;; In links.org, press RET on a link to open it
+(add-hook 'org-mode-hook
+          (lambda ()
+            (when (string= (buffer-file-name) my/links-file)
+              (local-set-key (kbd "RET") #'my/open-link))))
+
+;; Usage
+
+;; 1. **`SPC n l`** → opens links.org, fuzzy search headings
+;; 2. **Navigate** → `RET` on a link opens with elpher/emms
+;; 3. **`SPC n L`** → prompts for URL/title/category, auto-adds to file
+
+;; Workflow
+
+;;SPC n l → type "midnight" → RET → opens in elpher
+;;SPC n L → paste gemini URL → "Cool Site" → "Gemini" → saved

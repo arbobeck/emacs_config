@@ -193,3 +193,9 @@
        :config
        ;;literate
        (default +bindings +smartparens))
+
+(defun eww-reddit-redirect(url)
+  "Redirect reddit.com to old.reddit.com automatically."
+  (replace-regexp-in-string "https://www.reddit.com" "https://old.reddit.com" url))
+
+(setq eww-url-transformers '(eww-remove-tracking eww-reddit-redirect))

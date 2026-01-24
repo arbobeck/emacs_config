@@ -289,3 +289,8 @@
       (lambda () (interactive) 
         (let ((default-directory "~/"))
           (call-interactively #'find-file))))
+
+(after! pdf-tools
+  (setf (alist-get "\\.pdf\\'" auto-mode-alist nil nil #'string-match-p)
+        #'pdf-view-mode))
+

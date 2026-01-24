@@ -290,7 +290,12 @@
         (let ((default-directory "~/"))
           (call-interactively #'find-file))))
 
+
 (after! pdf-tools
+  ;; Force pdf-view-mode for PDFs
   (setf (alist-get "\\.pdf\\'" auto-mode-alist nil nil #'string-match-p)
-        #'pdf-view-mode))
+        #'pdf-view-mode)
+
+  ;; Enable night mode
+  (add-hook 'pdf-view-mode-hook #'pdf-view-midnight-minor-mode))
 

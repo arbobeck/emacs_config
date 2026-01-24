@@ -183,6 +183,26 @@
       :prefix "n"
       :desc "Chat" "c" #'ellama-chat)
 
+;; Require Elpher for Gemini and EMMS for Youtube
+(use-package! elpher
+  :commands (elpher-go elpher-mode))
+
+(use-package! emms
+  :config
+  (require 'emms-setup)
+  (emms-all)
+  (setq emms-player-list '(emms-player-mpv)))
+
+;; Require Elpher for Gemini and EMMS for Youtube
+(use-package! elpher
+  :commands (elpher-go elpher-mode))
+
+(use-package! emms
+  :config
+  (require 'emms-setup)
+  (emms-all)
+  (setq emms-player-list '(emms-player-mpv)))
+
 ;; Links.Org
 (setq my/links-file (expand-file-name "~/links.org"))
 
@@ -190,12 +210,19 @@
   "Open link at point with appropriate app (elpher/emms)."
   (interactive)
   (let ((link (org-element-property :raw-link (org-element-context))))
-    (cond
-     ((string-prefix-p "gemini://" link)
-      (elpher-go link))
-     ((string-match-p "youtube.com\\|youtu.be" link)
-      (emms-play-url link))
-     (t (browse-url link)))))
+    (message "Debug - Link found: %s" link)
+    (if (not link)
+        (message "No link at point")
+      (cond
+       ((string-prefix-p "gemini://" link)
+        (message "Opening with elpher: %s" link)
+        (elpher-go link))
+       ((string-match-p "youtube.com\\|youtu.be" link)
+        (message "Opening with emms: %s" link)
+        (emms-play-url link))
+       (t 
+        (message "Opening with browse-url: %s" link)
+        (browse-url link))))))
 
 (defun my/add-link ()
   "Add link to links.org under current heading."
@@ -207,6 +234,7 @@
     (goto-char (point-min))
     (re-search-forward (concat "^\\* " category))
     (org-end-of-subtree)
+    (unless (bolp) (insert "\n"))
     (insert (format "** [[%s][%s]]\n" url title))
     (save-buffer)))
 
@@ -214,18 +242,35 @@
   "Open links.org and jump to link selection."
   (interactive)
   (find-file my/links-file)
-  (counsel-org-goto)) ; or consult-org-heading if you use consult
+  (consult-org-heading))
 
+;; Advise org-open-at-point to intercept link opening in links.org
+(defun my/advice-org-open-at-point (orig-fun &rest args)
+  "Advice to intercept link opening in links.org."
+  (if (and (buffer-file-name)
+           (string= (buffer-file-name) my/links-file)
+           (org-in-regexp org-link-any-re))
+      (my/open-link)
+    (apply orig-fun args)))
+
+(advice-add 'org-open-at-point :around #'my/advice-org-open-at-point)
+
+;; Setup keybindings for links.org
+(defun my/setup-links-org-mode ()
+  "Setup custom keybindings for links.org."
+  (when (and (buffer-file-name) 
+             (string= (buffer-file-name) my/links-file))
+    (local-set-key (kbd "RET") #'my/open-link)
+    (message "Custom link handlers enabled for links.org")))
+
+(add-hook 'org-mode-hook #'my/setup-links-org-mode)
+
+;; Leader keybindings
 (map! :leader
       :prefix "n"
       :desc "Browse links" "l" #'my/browse-links
       :desc "Add link" "L" #'my/add-link)
 
-;; In links.org, press RET on a link to open it
-(add-hook 'org-mode-hook
-          (lambda ()
-            (when (string= (buffer-file-name) my/links-file)
-              (local-set-key (kbd "RET") #'my/open-link))))
 
 ;; Usage
 
@@ -237,3 +282,10 @@
 
 ;;SPC n l → type "midnight" → RET → opens in elpher
 ;;SPC n L → paste gemini URL → "Cool Site" → "Gemini" → saved
+
+;; Override SPC f f to always start at home directory
+(map! :leader
+      :desc "Find file from home" "f f" 
+      (lambda () (interactive) 
+        (let ((default-directory "~/"))
+          (call-interactively #'find-file))))

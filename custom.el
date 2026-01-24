@@ -7,7 +7,7 @@
  '(magit-todos-insert-after '(bottom) nil nil "Changed by setter of obsolete option `magit-todos-insert-at'")
  '(package-selected-packages
    '(@ all-the-icons all-the-icons-nerd-fonts chatgpt-shell ellama elpher exwm
-     treemacs-all-the-icons vue-mode))
+     telega treemacs-all-the-icons vue-mode))
  '(tool-bar-mode nil nil (tool-bar)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

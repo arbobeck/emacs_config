@@ -55,3 +55,4 @@
 (package! treemacs-all-the-icons)
 (package! elpher)
 (package! ellama)
+(package! telega)

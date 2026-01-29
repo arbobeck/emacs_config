@@ -118,21 +118,18 @@
             ;; fallback: open project root in Dired
             (dired project-root)))))
 
-;;; EMMS YouTube + MPV Setup
-(use-package! emms
-  :defer t
-  :config
-  ;; Enable the core EMMS modules you need
-  (require 'emms-setup)
-  (require 'emms-player-mpv)
-  
-  ;; Setup MPV as player
-  (setq emms-player-list '(emms-player-mpv))
-  (setq emms-player-mpv-parameters '("--no-video" "--no-terminal" "--quiet"))
-  
-  ;; Basic EMMS setup
-  (emms-all)
-  (emms-default-players))
+(defun my/org-open-bandcamp-with-emms (url _)
+  "Play Bandcamp URL via EMMS instead of opening a browser."
+  (emms-play-url url))
+
+(after! org
+  (org-link-set-parameters
+   "https"
+   :follow
+   (lambda (url arg)
+     (if (string-match-p "bandcamp\\.com" url)
+         (my/org-open-bandcamp-with-emms url arg)
+       (browse-url url)))))
 
 ;; Allow ctrl-shift-v to paste in vterm
 
@@ -217,7 +214,7 @@
        ((string-prefix-p "gemini://" link)
         (message "Opening with elpher: %s" link)
         (elpher-go link))
-       ((string-match-p "youtube.com\\|youtu.be" link)
+       ((string-match-p "bandcamp.com" link)
         (message "Opening with emms: %s" link)
         (emms-play-url link))
        (t 
@@ -229,7 +226,7 @@
   (interactive)
   (let ((url (read-string "URL: "))
         (title (read-string "Title: "))
-        (category (completing-read "Category: " '("Gemini" "YouTube"))))
+        (category (completing-read "Category: " '("Gemini" "Bandcamp"))))
     (find-file my/links-file)
     (goto-char (point-min))
     (re-search-forward (concat "^\\* " category))
@@ -299,3 +296,17 @@
   ;; Enable night mode
   (add-hook 'pdf-view-mode-hook #'pdf-view-midnight-minor-mode))
 
+(defun my/gemini-new-post ()
+  (interactive)
+  (let* ((category (completing-read "Category: " '("politics" "theology" "philosophy")))
+         (title (read-string "Title: "))
+         (slug (replace-regexp-in-string " " "-" (downcase title)))
+         (date (format-time-string "%Y-%m-%d")))
+    (find-file
+     (format "~/gemini/blog/posts/%s/%s-%s.gmi" category date slug))
+    (insert (format "# %s\n\n%s\n\n" title date))))
+
+(defun my/gemini-publish-terminal ()
+  (interactive)
+  (let ((default-directory "~/gemini/blog/"))
+    (ansi-term "/bin/bash" "gemini-publish")))

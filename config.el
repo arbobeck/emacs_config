@@ -310,3 +310,10 @@
   (interactive)
   (let ((default-directory "~/gemini/blog/"))
     (ansi-term "/bin/bash" "gemini-publish")))
+
+;; add margin and visual-line-mode to text files (like .gmi)
+(after! text-mode
+  (add-hook 'text-mode-hook
+            (lambda ()
+              (visual-line-mode 1)
+              (setq-local fill-column 80))))

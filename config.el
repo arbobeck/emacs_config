@@ -300,7 +300,16 @@
   ;; Enable night mode
   (add-hook 'pdf-view-mode-hook #'pdf-view-midnight-minor-mode))
 
+;; add margin and visual-line-mode to text files (like .gmi)
+(after! text-mode
+  (add-hook 'text-mode-hook
+            (lambda ()
+              (visual-line-mode 1)
+              (setq-local fill-column 80))))
+
+;; gemini/html publishing
 (defun my/gemini-new-post ()
+  "Create a new .gmi post with category and date."
   (interactive)
   (let* ((category (completing-read "Category: " '("politics" "theology" "philosophy")))
          (title (read-string "Title: "))
@@ -310,14 +319,8 @@
      (format "~/gemini/blog/posts/%s/%s-%s.gmi" category date slug))
     (insert (format "# %s\n\n%s\n\n" title date))))
 
-(defun my/gemini-publish-terminal ()
+(defun my/gemini-publish ()
+  "Publish all .gmi files to Codeberg as HTML."
   (interactive)
   (let ((default-directory "~/gemini/blog/"))
-    (ansi-term "/bin/bash" "gemini-publish")))
-
-;; add margin and visual-line-mode to text files (like .gmi)
-(after! text-mode
-  (add-hook 'text-mode-hook
-            (lambda ()
-              (visual-line-mode 1)
-              (setq-local fill-column 80))))
+    (compile "./publish.sh")))

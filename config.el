@@ -300,27 +300,171 @@
   ;; Enable night mode
   (add-hook 'pdf-view-mode-hook #'pdf-view-midnight-minor-mode))
 
-;; add margin and visual-line-mode to text files (like .gmi)
-(after! text-mode
-  (add-hook 'text-mode-hook
-            (lambda ()
-              (visual-line-mode 1)
-              (setq-local fill-column 80))))
+;; ============================================================================
+;; GEMINI BLOGGING CONFIGURATION
+;; Beautiful, distraction-free writing for your gemini blog
+;; ============================================================================
 
-;; gemini/html publishing
+;; Create new blog post with category selection
 (defun my/gemini-new-post ()
   "Create a new .gmi post with category and date."
   (interactive)
-  (let* ((category (completing-read "Category: " '("politics" "theology" "philosophy")))
+  (let* ((category (completing-read "Category: " '("politics" "theology" "philosophy" "potpourri")))
          (title (read-string "Title: "))
          (slug (replace-regexp-in-string " " "-" (downcase title)))
-         (date (format-time-string "%Y-%m-%d")))
-    (find-file
-     (format "~/gemini/blog/posts/%s/%s-%s.gmi" category date slug))
-    (insert (format "# %s\n\n%s\n\n" title date))))
+         (date (format-time-string "%Y-%m-%d"))
+         (filepath (format "~/gemini/blog/posts/%s/%s-%s.gmi" category date slug)))
+    (find-file filepath)
+    (insert (format "# %s\n\n%s\n\n" title date))
+    (save-buffer)
+    ;; Explicitly trigger writing mode
+    (my/writing-mode)
+    (message "📝 Created new post: %s" filepath)))
 
+;; Publish blog to Codeberg
 (defun my/gemini-publish ()
   "Publish all .gmi files to Codeberg as HTML."
   (interactive)
   (let ((default-directory "~/gemini/blog/"))
-    (compile "./publish.sh")))
+    (async-shell-command "bash publish.sh" "*Gemini Publish*")
+    (message "🚀 Publishing blog...")))
+
+;; Quick save and publish
+(defun my/gemini-save-and-publish ()
+  "Save current buffer and publish blog."
+  (interactive)
+  (save-buffer)
+  (my/gemini-publish))
+
+;; Open blog directory
+(defun my/gemini-open-blog ()
+  "Open the blog posts directory."
+  (interactive)
+  (find-file "~/gemini/blog/posts/"))
+
+;; ============================================================================
+;; BEAUTIFUL WRITING MODE FOR .GMI FILES
+;; ============================================================================
+
+(defun my/writing-mode ()
+  "Enable beautiful, distraction-free writing mode."
+  (interactive)
+  ;; Visual settings
+  (visual-line-mode 1)
+  (visual-fill-column-mode 1)
+  (setq-local visual-fill-column-width 80)
+  (setq-local visual-fill-column-center-text t)
+  
+  ;; Typography
+  (setq-local line-spacing 0.2)
+  (setq-local fill-column 80)
+  
+  ;; Better text justification (subtle, not full justify)
+  (setq-local word-wrap t)
+  
+  ;; Disable line numbers for cleaner look
+  (display-line-numbers-mode -1)
+  
+  ;; Optional: Enable olivetti mode if you have it (even better centering)
+  (when (featurep 'olivetti)
+    (olivetti-mode 1)
+    (setq-local olivetti-body-width 80)))
+
+;; Apply writing mode to .gmi files automatically
+(add-hook 'text-mode-hook
+          (lambda ()
+            (when (and buffer-file-name
+                       (string-match-p "\\.gmi\\'" buffer-file-name))
+              (my/writing-mode))))
+
+;; ============================================================================
+;; FONT CONFIGURATION FOR WRITING
+;; Set a beautiful serif font for .gmi files (adjust to your preference)
+;; ============================================================================
+
+(defun my/set-writing-font ()
+  "Set a beautiful font for writing."
+  (when (and buffer-file-name
+             (string-match-p "\\.gmi\\'" buffer-file-name))
+    ;; Try different fonts in order of preference
+    ;; You can customize this list based on what's installed on your system
+    (let ((preferred-fonts
+           '("Iowan Old Style"     ; macOS
+             "Charter"              ; Free, excellent reading font
+             "ETBembo"              ; If installed
+             "Crimson Text"         ; Google font
+             "Libre Baskerville"    ; Google font
+             "Georgia"              ; Fallback
+             "Merriweather")))      ; Another fallback
+      (cl-loop for font in preferred-fonts
+               when (find-font (font-spec :name font))
+               do (progn
+                    (buffer-face-set `(:family ,font :height 140))
+                    (cl-return))
+               finally (buffer-face-set '(:height 140))))))
+
+(add-hook 'text-mode-hook 'my/set-writing-font)
+
+;; ============================================================================
+;; OPTIONAL: INSTALL VISUAL-FILL-COLUMN IF NOT PRESENT
+;; This provides better text centering
+;; ============================================================================
+;; Add to your packages.el:
+;; (package! visual-fill-column)
+
+;; ============================================================================
+;; KEYBINDINGS
+;; ============================================================================
+
+(map! :leader
+      (:prefix ("b g" . "blog")
+       :desc "New post"           "n" #'my/gemini-new-post
+       :desc "Publish blog"       "p" #'my/gemini-publish
+       :desc "Save and publish"   "P" #'my/gemini-save-and-publish
+       :desc "Open blog dir"      "o" #'my/gemini-open-blog))
+
+;; Quick keybinding in .gmi buffers
+(map! :map text-mode-map
+      :localleader
+      :desc "Publish blog" "p" #'my/gemini-publish
+      :desc "Save & publish" "P" #'my/gemini-save-and-publish)
+
+;; ============================================================================
+;; OPTIONAL ENHANCEMENTS
+;; ============================================================================
+
+;; Auto-save .gmi files when you switch buffers (less Ctrl+X Ctrl+S)
+(add-hook 'text-mode-hook
+          (lambda ()
+            (when (and buffer-file-name
+                       (string-match-p "\\.gmi\\'" buffer-file-name))
+              (auto-save-visited-mode 1))))
+
+;; Show word count in modeline for .gmi files
+(add-hook 'text-mode-hook
+          (lambda ()
+            (when (and buffer-file-name
+                       (string-match-p "\\.gmi\\'" buffer-file-name))
+              (doom-modeline-mode 1))))
+
+;; ============================================================================
+;; USAGE
+;; ============================================================================
+;;
+;; SPC b g n  - Create new blog post
+;; SPC b g p  - Publish blog to Codeberg  
+;; SPC b g P  - Save current file and publish
+;; SPC b g o  - Open blog directory
+;;
+;; In a .gmi buffer:
+;; SPC m p  - Publish blog
+;; SPC m P  - Save and publish
+;;
+;; Your writing environment will automatically:
+;; - Center text at 80 characters
+;; - Use a beautiful serif font
+;; - Add comfortable line spacing
+;; - Enable word wrap
+;; - Hide distractions
+;;
+;; ============================================================================

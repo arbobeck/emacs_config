@@ -119,7 +119,7 @@
             (dired project-root)))))
 
 (defun my/org-open-bandcamp-with-emms (url _)
-  "Play Bandcamp URL via EMMS instead of opening a browser."
+  "Play Bandcamp and SoundCloud URLs via EMMS instead of opening a browser."
   (emms-play-url url))
 
 (after! org
@@ -127,7 +127,7 @@
    "https"
    :follow
    (lambda (url arg)
-     (if (string-match-p "bandcamp\\.com" url)
+     (if (string-match-p "bandcamp\\.com\\|soundcloud\\.com" url)
          (my/org-open-bandcamp-with-emms url arg)
        (browse-url url)))))
 
@@ -214,7 +214,7 @@
        ((string-prefix-p "gemini://" link)
         (message "Opening with elpher: %s" link)
         (elpher-go link))
-       ((string-match-p "bandcamp.com" link)
+       ((string-match-p "bandcamp\\.com\\|soundcloud\\.com" link)
         (message "Opening with emms: %s" link)
         (emms-play-url link))
        (t 
@@ -226,7 +226,7 @@
   (interactive)
   (let ((url (read-string "URL: "))
         (title (read-string "Title: "))
-        (category (completing-read "Category: " '("Gemini" "Bandcamp"))))
+        (category (completing-read "Category: " '("Gemini" "Bandcamp" "SoundCloud"))))
     (find-file my/links-file)
     (goto-char (point-min))
     (re-search-forward (concat "^\\* " category))
@@ -240,6 +240,10 @@
   (interactive)
   (find-file my/links-file)
   (consult-org-heading))
+
+(after! emms
+  (setq emms-player-mpv-parameters
+        '("--ytdl" "--no-video" "--quiet")))
 
 ;; Advise org-open-at-point to intercept link opening in links.org
 (defun my/advice-org-open-at-point (orig-fun &rest args)
